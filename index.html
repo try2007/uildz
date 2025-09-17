@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Фотогалерея | 6 альбомов</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            background-attachment: fixed;
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .albums-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .album {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .album:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .album-cover {
+            height: 200px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .album-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .album:hover .album-cover img {
+            transform: scale(1.1);
+        }
+
+        .album-count {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .album-info {
+            padding: 20px;
+        }
+
+        .album-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .album-desc {
+            font-size: 0.95rem;
+            opacity: 0.8;
+            margin-bottom: 15px;
+        }
+
+        .album-date {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .modal-content {
+            position: relative;
+            width: 90%;
+            max-width: 1000px;
+            height: 80vh;
+            margin: 5vh auto;
+            background: #000;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 30px;
+            color: #fff;
+            cursor: pointer;
+            z-index: 1001;
+            background: rgba(0, 0, 0, 0.5);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .album-slides {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+        }
+
+        .album-slides::-webkit-scrollbar {
+            display: none;
+        }
+
+        .album-slides img {
+            flex: 0 0 auto;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            scroll-snap-align: start;
+        }
+
+        .navigation {
+            position: absolute;
+            bottom: 20px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            z-index: 1001;
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .nav-dot.active {
+            background: #fff;
+        }
+
+        .nav-arrows {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+            transform: translateY(-50%);
+            z-index: 1001;
+        }
+
+        .arrow {
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.5);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            margin-top: 40px;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            font-size: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .albums-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 15px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+                padding: 0 15px;
+            }
+            
+            .arrow {
+                font-size: 1.5rem;
+                width: 40px;
+                height: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Моя Фотогалерея</h1>
+        <p class="subtitle">Шесть уникальных альбомов с фотографиями из разных уголков мира и моментов жизни</p>
+    </header>
+
+    <div class="container">
+        <div class="albums-grid">
+            <!-- Альбом 1 -->
+            <div class="album" data-album="1">
+                <div class="album-cover">
+                    <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb" alt="Природа">
+                    <div class="album-count">12 фото</div>
+                </div>
+                <div class="album-info">
+                    <h3 class="album-title">Природа</h3>
+                    <p class="album-desc">Захватывающие пейзажи и природные красоты со всего мира</p>
+                    <div class="album-date">
+                        <span><i class="far fa-calendar"></i> 15.06.2023</span>
+                        <span><i class="far fa-image"></i> 12 фото</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Альбом 2 -->
+            <div class="album" data-album="2">
+                <div class="album-cover">
+                    <img src="https://images.unsplash.com/photo-1526662092590-e314cbeaf8da" alt="Города">
+                    <div class="album-count">10 фото</div>
+                </div>
+                <div class="album-info">
+                    <h3 class="album-title">Города</h3>
+                    <p class="album-desc">Архитектура и городские пейзажи современных мегаполисов</p>
+                    <div class="album-date">
+                        <span><i class="far fa-calendar"></i> 22.07.2023</span>
+                        <span><i class="far fa-image"></i> 10 фото</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Альбом 3 -->
+            <div class="album" data-album="3">
+                <div class="album-cover">
+                    <img src="https://images.unsplash.com/photo-1551963831-b3b1ca40c98e" alt="Еда">
+                    <div class="album-count">8 фото</div>
+                </div>
+                <div class="album-info">
+                    <h3 class="album-title">Кулинария</h3>
+                    <p class="album-desc">Вкусные блюда и гастрономические впечатления</p>
+                    <div class="album-date">
+                        <span><i class="far fa-calendar"></i> 05.08.2023</span>
+                        <span><i class="far fa-image"></i> 8 фото</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Альбом 4 -->
+            <div class="album" data-album="4">
+                <div class="album-cover">
+                    <img src="https://images.unsplash.com/photo-1447752875215-b2761acb3c5d" alt="Путешествия">
+                    <div class="album-count">15 фото</div>
+                </div>
+                <div class="album-info">
+                    <h3 class="album-title">Путешествия</h3>
+                    <p class="album-desc">Впечатления и приключения из разных стран</p>
+                    <div class="album-date">
+                        <span><i class="far fa-calendar"></i> 18.09.2023</span>
+                        <span><i class="far fa-image"></i> 15 фото</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Альбом 5 -->
+            <div class="album" data-album="5">
+                <div class="album-cover">
+                    <img src="https://images.unsplash.com/photo-1470225620780-dba8ba36b745" alt="Концерты">
+                    <div class="album-count">7 фото</div>
+                </div>
+                <div class="album-info">
+                    <h3 class="album-title">Концерты</h3>
+                    <p class="album-desc">Музыкальные события и живые выступления</p>
+                    <div class="album-date">
+                        <span><i class="far fa-calendar"></i> 03.10.2023</span>
+                        <span><i class="far fa-image"></i> 7 фото</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Альбом 6 -->
+            <div class="album" data-album="6">
+                <div class="album-cover">
+                    <img src="https://images.unsplash.com/photo-1504610926078-a1611febcad3" alt="Макро">
+                    <div class="album-count">9 фото</div>
+                </div>
+                <div class="album-info">
+                    <h3 class="album-title">Макросъемка</h3>
+                    <p class="album-desc">Детали и текстуры, невидимые невооруженным глазом</p>
+                    <div class="album-date">
+                        <span><i class="far fa-calendar"></i> 12.11.2023</span>
+                        <span><i class="far fa-image"></i> 9 фото</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для просмотра альбома -->
+    <div class="modal" id="albumModal">
+        <div class="close-btn" id="closeModal">
+            <i class="fas fa-times"></i>
+        </div>
+        <div class="modal-content">
+            <div class="album-slides" id="albumSlides">
+                <!-- Слайды будут добавляться через JavaScript -->
+            </div>
+            <div class="navigation" id="albumNavigation">
+                <!-- Навигация будет добавляться через JavaScript -->
+            </div>
+            <div class="nav-arrows">
+                <div class="arrow prev" id="prevArrow">&#10094;</div>
+                <div class="arrow next" id="nextArrow">&#10095;</div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2023 Фотогалерея. Все права защищены.</p>
+    </footer>
+
+    <script>
+        // Данные альбомов
+        const albumsData = {
+            1: {
+                title: "Природа",
+                images: [
+                    "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+                    "https://images.unsplash.com/photo-1472214103451-9374bd1c798e",
+                    "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07",
+                    "https://images.unsplash.com/photo-1501785888041-af3ef285b470",
+                    "https://images.unsplash.com/photo-1475924156734-496f6cac6ec1",
+                    "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d"
+                ]
+            },
+            2: {
+                title: "Города",
+                images: [
+                    "https://images.unsplash.com/photo-1526662092590-e314cbeaf8da",
+                    "https://images.unsplash.com/photo-1519501025264-65ba15a82390",
+                    "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b",
+                    "https://images.unsplash.com/photo-1514565131-fce0801e5785",
+                    "https://images.unsplash.com/photo-1496568816309-51d7c20e3b21",
+                    "https://images.unsplash.com/photo-1477959858617-67f85cf4f1df"
+                ]
+            },
+            3: {
+                title: "Кулинария",
+                images: [
+                    "https://images.unsplash.com/photo-1551963831-b3b1ca40c98e",
+                    "https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445",
+                    "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
+                    "https://images.unsplash.com/photo-1565958011703-44f9829ba187",
+                    "https://images.unsplash.com/photo-1482049016688-2d3e1b311543",
+                    "https://images.unsplash.com/photo-1476224203421-9ac39bcb3327"
+                ]
+            },
+            4: {
+                title: "Путешествия",
+                images: [
+                    "https://images.unsplash.com/photo-1447752875215-b2761acb3c5d",
+                    "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800",
+                    "https://images.unsplash.com/photo-1505832018823-50331d70d237",
+                    "https://images.unsplash.com/photo-1506929562872-bb421503ef21",
+                    "https://images.unsplash.com/photo-1469474968028-56623f02e42e",
+                    "https://images.unsplash.com/photo-1502082553048-f009c37129b9"
+                ]
+            },
+            5: {
+                title: "Концерты",
+                images: [
+                    "https://images.unsplash.com/photo-1470225620780-dba8ba36b745",
+                    "https://images.unsplash.com/photo-1501281668745-f7f57925c3b4",
+                    "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f",
+                    "https://images.unsplash.com/photo-1459749411175-04bf5292ceea",
+                    "https://images.unsplash.com/photo-1514525253161-7a46d19cd819",
+                    "https://images.unsplash.com/photo-1465847899084-d164df4dedc6"
+                ]
+            },
+            6: {
+                title: "Макросъемка",
+                images: [
+                    "https://images.unsplash.com/photo-1504610926078-a1611febcad3",
+                    "https://images.unsplash.com/photo-1531097411993-db98b74be55c",
+                    "https://images.unsplash.com/photo-1521334884684-d80222895322",
+                    "https://images.unsplash.com/photo-1517088455889-bfa75135412c",
+                    "https://images.unsplash.com/photo-1520635332663-82985da29021",
+                    "https://images.unsplash.com/photo-1521737711867-e3b97375f902"
+                ]
+            }
+        };
+
+        // Элементы DOM
+        const modal = document.getElementById('albumModal');
+        const albumSlides = document.getElementById('albumSlides');
+        const albumNavigation = document.getElementById('albumNavigation');
+        const closeModal = document.getElementById('closeModal');
+        const albums = document.querySelectorAll('.album');
+        const prevArrow = document.getElementById('prevArrow');
+        const nextArrow = document.getElementById('nextArrow');
+
+        // Переменные для управления состоянием
+        let currentAlbumId = null;
+        let currentImageIndex = 0;
+
+        // Открытие модального окна с альбомом
+        albums.forEach(album => {
+            album.addEventListener('click', () => {
+                const albumId = album.getAttribute('data-album');
+                openAlbum(albumId);
+            });
+        });
+
+        // Закрытие модального окна
+        closeModal.addEventListener('click', () => {
+            modal.style.display = 'none';
+            // Очищаем слайды при закрытии
+            albumSlides.innerHTML = '';
+            albumNavigation.innerHTML = '';
+        });
+
+        // Навигация стрелками
+        prevArrow.addEventListener('click', () => {
+            navigateImages('prev');
+        });
+
+        nextArrow.addEventListener('click', () => {
+            navigateImages('next');
+        });
+
+        // Навигация с клавиатуры
+        document.addEventListener('keydown', (e) => {
+            if (modal.style.display === 'block') {
+                if (e.key === 'ArrowLeft') {
+                    navigateImages('prev');
+                } else if (e.key === 'ArrowRight') {
+                    navigateImages('next');
+                } else if (e.key === 'Escape') {
+                    modal.style.display = 'none';
+                    albumSlides.innerHTML = '';
+                    albumNavigation.innerHTML = '';
+                }
+            }
+        });
+
+        // Функция открытия альбома
+        function openAlbum(albumId) {
+            currentAlbumId = albumId;
+            const album = albumsData[albumId];
+            
+            // Показываем индикатор загрузки
+            albumSlides.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Загрузка...</div>';
+            albumNavigation.innerHTML = '';
+            
+            // Показать модальное окно
+            modal.style.display = 'block';
+            
+            // Загружаем изображения с задержкой для демонстрации
+            setTimeout(() => {
+                // Очистка предыдущих данных
+                albumSlides.innerHTML = '';
+                
+                // Добавление изображений
+                album.images.forEach((image, index) => {
+                    const imgElement = document.createElement('img');
+                    imgElement.src = image;
+                    imgElement.alt = `${album.title} - фото ${index + 1}`;
+                    imgElement.loading = "lazy"; // Ленивая загрузка
+                    albumSlides.appendChild(imgElement);
+                    
+                    // Добавление точки навигации
+                    const dot = document.createElement('div');
+                    dot.className = 'nav-dot';
+                    if (index === 0) dot.classList.add('active');
+                    dot.addEventListener('click', () => {
+                        scrollToImage(index);
+                    });
+                    albumNavigation.appendChild(dot);
+                });
+                
+                // Сброс прокрутки к началу
+                currentImageIndex = 0;
+                albumSlides.scrollTo(0, 0);
+            }, 500);
+        }
+
+        // Функция навигации по изображениям
+        function navigateImages(direction) {
+            if (!currentAlbumId) return;
+            
+            const album = albumsData[currentAlbumId];
+            let newIndex;
+            
+            if (direction === 'next') {
+                newIndex = (currentImageIndex + 1) % album.images.length;
+            } else {
+                newIndex = (currentImageIndex - 1 + album.images.length) % album.images.length;
+            }
+            
+            scrollToImage(newIndex);
+        }
+
+        // Прокрутка к определенному изображению
+        function scrollToImage(index) {
+            if (!currentAlbumId) return;
+            
+            const slideWidth = albumSlides.offsetWidth;
+            albumSlides.scrollTo({
+                left: index * slideWidth,
+                behavior: 'smooth'
+            });
+            
+            currentImageIndex = index;
+            setActiveDot(index);
+        }
+
+        // Установка активной точки навигации
+        function setActiveDot(index) {
+            const dots = document.querySelectorAll('.nav-dot');
+            dots.forEach(dot => dot.classList.remove('active'));
+            if (dots[index]) {
+                dots[index].classList.add('active');
+            }
+        }
+
+        // Обработка прокрутки для навигации
+        albumSlides.addEventListener('scroll', () => {
+            const scrollPosition = albumSlides.scrollLeft;
+            const slideWidth = albumSlides.offsetWidth;
+            const newIndex = Math.round(scrollPosition / slideWidth);
+            
+            if (newIndex !== currentImageIndex) {
+                currentImageIndex = newIndex;
+                setActiveDot(newIndex);
+            }
+        });
+    </script>
+</body>
+</html>
